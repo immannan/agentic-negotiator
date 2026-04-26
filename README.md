@@ -34,7 +34,7 @@ The negotiation runs for a maximum of **5 rounds**. Agents use real market data 
 Folders are numbered in teaching order. Each module introduces one new concept.
 
 ```
-real-estate-negotiation-simulator/
+agentic-negotiator/
 │
 ├── m1_baseline/                       # MODULE 1 — Start here. Watch it break.
 │   ├── README.md                      # Module guide for learners
@@ -125,7 +125,7 @@ node --version    # should be 18+
 ```bash
 # If you already have the repo, skip this step
 git clone <your-repo-url>
-cd real-estate-negotiation-simulator
+cd agentic-negotiator
 ```
 
 ### 3. Create a virtual environment
@@ -426,9 +426,9 @@ export OPENAI_API_KEY=sk-your-actual-key
 
 **`FileNotFoundError` running MCP servers**
 ```bash
-# Run from the real-estate-negotiation-simulator/ directory
-cd real-estate-negotiation-simulator
-python m2_mcp/pricing_server.py  # Not: python real-estate-negotiation-simulator/m2_mcp/pricing_server.py
+# Run from the agentic-negotiator/ directory
+cd agentic-negotiator
+python m2_mcp/pricing_server.py  # Not: python agentic-negotiator/m2_mcp/pricing_server.py
 ```
 
 **GitHub MCP demo fails with `command not found: npx`**

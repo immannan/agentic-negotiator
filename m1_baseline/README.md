@@ -93,7 +93,7 @@ Every module you learn fixes one or more rows in that failure table.
 ## How to run
 
 ```bash
-# Run from the real-estate-negotiation-simulator/ directory
+# Run from the agentic-negotiator/ directory
 
 # Part 1: Watch the naive version (requires OPENAI_API_KEY — makes real GPT-4o calls)
 python m1_baseline/naive_negotiation.py
