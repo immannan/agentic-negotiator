@@ -1,6 +1,16 @@
 # MCP Deep Dive
 ## Model Context Protocol: How Agents Connect to the World
 
+> **Audience:** Engineers who have an LLM agent and need to connect it to external tools/data — APIs, databases, file systems — *without* writing one-off integrations for every pair.
+> **Prerequisites:** Familiarity with HTTP, JSON, and what "tool use" means in the OpenAI / Anthropic SDKs.
+> **Read this after:** Running `m2_mcp/demos/01_initialize_handshake.py` and `02_tool_loop_trace.py`. Seeing the wire frames first makes the protocol concrete; reading this without the demos can feel abstract.
+> **Read this next:** [`../../m3_adk_multiagents/notes/google_adk_overview.md`](../../m3_adk_multiagents/notes/google_adk_overview.md) for how ADK consumes MCP via `MCPToolset`, and [`../../m3_adk_multiagents/notes/a2a_protocols.md`](../../m3_adk_multiagents/notes/a2a_protocols.md) for A2A — the parallel protocol but for *agents* instead of *tools*.
+>
+> **TL;DR:**
+> 1. **MCP is a thin RPC layer over JSON-RPC 2.0** standardizing three operations: `initialize` (handshake + capability negotiation), `tools/list` (discover what's available), `tools/call` (invoke a tool by name). Everything else — resources, prompts, streaming — is layered on these three.
+> 2. **Four primitives, three transports.** Primitives: Tools (the model invokes), Resources (the host fetches), Prompts (parameterized templates), Sampling (server asks host for LLM reasoning). Transports: stdio (local subprocess), SSE (legacy HTTP), Streamable HTTP (production HTTP).
+> 3. **N+M, not N×M.** The protocol turns a quadratic integration problem (every agent × every API) into linear (every agent + every API both speak MCP). 300M+ SDK downloads/month tell you the industry has converged on this.
+
 ---
 
 ## Table of Contents
@@ -12,7 +22,7 @@
 5. [GitHub MCP — A Familiar Example](#5-github-mcp--a-familiar-example)
 6. [Connecting to GitHub's MCP Server](#6-connecting-to-githubs-mcp-server)
 7. [Building Your Own MCP Server](#7-building-your-own-mcp-server)
-8. [Our Real Estate MCP Servers](#8-our-real-estate-mcp-servers)
+8. [Our Agentic Real Estate MCP Servers](#8-our-real-estate-mcp-servers)
 9. [Transport Protocols: stdio vs SSE/HTTP](#9-transport-protocols-stdio-vs-ssehttp)
 10. [Auth, Discovery, and Execution](#10-auth-discovery-and-execution)
 11. [Common Misconceptions](#11-common-misconceptions)
@@ -246,7 +256,7 @@ async def use_github_tools():
             # CALL tools with standard interface
             result = await session.call_tool(
                 "search_repositories",
-                {"query": "real estate pricing python"}
+                {"query": "agentic real estate pricing python"}
             )
             # Returns standardized CallToolResult
 ```
@@ -369,10 +379,10 @@ async def demo_github_mcp():
             print()
 
             # Step 3: CALL a tool — search for repos
-            print("🔍 Calling: search_repositories('real estate python')...")
+            print("🔍 Calling: search_repositories('agentic real estate python')...")
             result = await session.call_tool(
                 "search_repositories",
-                {"query": "real estate pricing python", "perPage": 3}
+                {"query": "agentic real estate pricing python", "perPage": 3}
             )
 
             # Result comes back as content blocks
@@ -556,13 +566,13 @@ def safe_division(numerator: float, denominator: float) -> float:
 
 ---
 
-## 8. Our Real Estate MCP Servers
+## 8. Our Agentic Real Estate MCP Servers
 
 Our workshop has two custom MCP servers that our negotiation agents use.
 
 ### Server 1: Pricing Server (`m2_mcp/pricing_server.py`)
 
-**What it simulates**: A real estate pricing data provider (think: Zillow's API, but accessed via MCP instead of direct HTTP calls).
+**What it simulates**: A agentic real estate pricing data provider (think: Zillow's API, but accessed via MCP instead of direct HTTP calls).
 
 ```
 Tools exposed:
@@ -607,13 +617,51 @@ Tools exposed:
 │                                                                  │
 │ get_minimum_acceptable_price(property_id)                        │
 │   → Returns: minimum_price, price_floor_reasoning               │
-│   NOTE: In real estate, only the seller's agent knows the       │
+│   NOTE: In agentic real estate, only the seller's agent knows the       │
 │   seller's floor price. Our seller agent uses this tool,        │
 │   buyer agent does NOT have access.                             │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
 **Educational note on access control**: The seller agent connects to the inventory server to get `minimum_acceptable_price`. The buyer agent does NOT connect to this tool — just like in real life where the buyer doesn't know the seller's bottom line. MCP servers can implement auth/access control to enforce this.
+
+### Information asymmetry — the design point
+
+The split between which agent connects to which server is **not a stylistic
+choice**. It's the canonical MCP pattern for modeling **information
+asymmetry** — situations where different agents serve different principals
+and must therefore see different data.
+
+| Tool | Buyer can call? | Seller can call? |
+|------|---|---|
+| `get_market_price`               | ✓ Yes | ✓ Yes |
+| `calculate_discount`             | ✓ Yes | ✓ Yes |
+| `get_inventory_level`            | ✗ No  | ✓ Yes |
+| `get_minimum_acceptable_price`   | ✗ No  | ✓ Yes |
+
+Two layers enforce the asymmetry:
+
+1. **Connection-level isolation.** The buyer agent doesn't construct an
+   `MCPToolset` for the inventory server, so `get_minimum_acceptable_price`
+   never appears in its tool catalog. *The LLM cannot call a tool it
+   doesn't know exists.*
+2. **Callback-level allowlist (Module 3).** Even if the buyer somehow
+   *did* connect to the inventory server (e.g., a bug, a prompt-injection
+   attack), a `before_tool_callback` rejects any call to a non-allowlisted
+   tool. *The LLM cannot bypass a callback — it's deterministic, not
+   suggestive.*
+
+**Belt and braces.** This pattern generalizes far beyond agentic real estate:
+
+- Customer-service agents connect to CRM tools but not to admin tools.
+- Employee agents connect to HR tools but not to customer-PII tools.
+- Partner agents connect to read-only data but not to write-back tools.
+
+In every case, the architecture is the same — *different MCPToolset
+configurations for different agent personas, plus a callback-level
+allowlist for defense in depth*. **Information asymmetry is a security
+architecture, and MCP gives you the building blocks to enforce it
+declaratively.**
 
 ### How Agents Use These Servers
 
@@ -902,7 +950,7 @@ In production, the model never talks to MCP directly. The flow is always:
    USER prompt
      │
      ▼
-   HOST (your app — buyer_adk.py, etc.)
+   HOST (your app — negotiation_agents/buyer_agent/agent.py, etc.)
      │  1. tools/list  ────────────────────────────────► SERVER
      │  ◄────────────── catalog of tools (with JSON-Schema)
      │
@@ -1007,7 +1055,7 @@ host    ──── sampling result ─────►        server
 This lets a server compose its own LLM-powered behavior without holding
 API keys. The host stays in control of model choice, redaction, and cost.
 
-The workshop hosts (`buyer_adk.py`, `seller_adk.py`) do **not** advertise
+The workshop agents (`negotiation_agents/buyer_agent/`, `seller_agent/`) do **not** advertise
 the `sampling` capability, so we don't demo this on the wire — but the
 pattern is critical for advanced server design.
 
@@ -1037,10 +1085,24 @@ Every tool result and most messages carry a list of typed content blocks:
 - **resource (embedded)** — inline document, useful when the server wants
   to ship a file alongside textual output.
 
+In the Python SDK these JSON shapes correspond to the typed classes:
+**`TextContent`**, **`ImageContent`**, **`AudioContent`**, and
+**`EmbeddedResource`**. When you write a `@mcp.tool()` that returns a
+plain `str` or `dict`, FastMCP wraps it in `TextContent` automatically —
+that's why every workshop tool just returns a dict and ignores content
+typing entirely. You only construct the other classes by hand when you
+specifically need to return an image, audio clip, or referenced resource.
+
 The model's host is responsible for converting these into something the
 model provider understands (e.g. OpenAI's `image_url` or Anthropic's
 `content` block). For text-only models, image/audio blocks are usually
 dropped or summarized.
+
+**Forward link to A2A.** A2A defines a parallel set of typed Parts —
+`TextPart`, `DataPart`, `FilePart` — that play the same role inside A2A
+Messages. **Different protocol, same idea: typed content blocks all the
+way down.** Once you internalize MCP's content blocks, A2A's Parts cost
+nothing extra to learn.
 
 **Demo:** `m2_mcp/demos/04_content_types.py` spawns a tiny server that
 returns each kind of block so you can see the JSON shape.
@@ -1085,7 +1147,7 @@ is responsible for what**, then defers to existing standards:
 - **Authorization to call tools.** The server decides. A common pattern
   is a per-client allowlist; another is signed JWT scopes mapped to tool
   names. Our `_BUYER_ALLOWED_TOOLS` / `_SELLER_ALLOWED_TOOLS` allowlists
-  in `buyer_adk.py` / `seller_adk.py` show the same pattern enforced
+  in `negotiation_agents/buyer_agent/agent.py` / `seller_agent/agent.py` show the same pattern enforced
   *host-side* via ADK callbacks.
 - **Data privacy.** The server is the gatekeeper for what it returns.
   `get_minimum_acceptable_price` in `inventory_server.py` is the
@@ -1139,6 +1201,62 @@ if __name__ == "__main__":
 ```
 
 When in doubt: hosts open + close sessions; servers expose primitives.
+
+---
+
+## 20. MCP Server Design Principles
+
+Patterns from production MCP deployments (source: [Anthropic — Building agents that reach production systems with MCP](https://claude.com/blog/building-agents-that-reach-production-systems-with-mcp)):
+
+### Principle 1: Group tools around intent, not endpoints
+
+Fewer, well-described tools consistently outperform exhaustive API mirrors.
+Don't wrap your API 1:1 — group operations around what the agent is trying
+to accomplish.
+
+```
+❌  BAD:  list_comps() + get_sqft_price() + calculate_value() + get_market_condition()
+✅  GOOD: get_market_price(address) → returns comps, value, $/sqft, condition in one call
+```
+
+Our `pricing_server.py` already follows this: `get_market_price` returns a
+rich object with comps, estimated value, price analysis, and market context.
+One tool call gives the LLM everything it needs.
+
+### Principle 2: Design for context efficiency
+
+20+ tool schemas consume significant LLM context. At scale:
+- **Defer loading**: only surface tools the agent actually needs for the current task
+- **Process in code**: filter and aggregate tool results in code before returning to the LLM, rather than dumping raw data into context
+
+Our servers expose 2–3 tools each — small enough that context isn't an issue.
+But if you built a full MLS integration with 50+ operations, you'd want to
+split into multiple focused servers or use tool search.
+
+### Principle 3: Start stdio, ship HTTP
+
+stdio is the right transport for local development (simple, no network).
+HTTP (Streamable HTTP) is the right transport for production (remote, multi-client, behind auth).
+The protocol is identical — only the wire changes.
+
+```bash
+# Development
+python pricing_server.py                          # stdio (default)
+
+# Production
+python pricing_server.py --sse --port 8001        # HTTP (same tools, same code)
+```
+
+### Principle 4: Code orchestration for large surfaces
+
+If your service has hundreds of operations (AWS, Kubernetes, Cloudflare),
+intent-grouping won't cover it. Instead, expose a thin tool surface that
+accepts code: the agent writes a script, your server runs it in a sandbox.
+Cloudflare's MCP server covers ~2,500 endpoints with just 2 tools (`search`
+and `execute`) in ~1K tokens.
+
+This pattern is beyond our workshop scope but worth mentioning to advanced
+students.
 
 
 

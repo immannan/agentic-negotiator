@@ -74,7 +74,7 @@ async def main() -> None:
 
             openai_tools = [_mcp_tool_to_openai(t) for t in catalog.tools]
             messages = [
-                {"role": "system", "content": "You are a real estate pricing analyst. Use tools to answer."},
+                {"role": "system", "content": "You are a agentic real estate pricing analyst. Use tools to answer."},
                 {"role": "user", "content": "What is the estimated value of 742 Evergreen Terrace, Austin, TX 78701?"},
             ]
 

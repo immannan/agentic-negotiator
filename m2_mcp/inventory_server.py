@@ -1,7 +1,7 @@
 """
-Real Estate Inventory MCP Server
+Agentic Real Estate Inventory MCP Server
 ==================================
-An MCP server exposing real estate inventory and seller constraint data.
+An MCP server exposing agentic real estate inventory and seller constraint data.
 
 MCP CONCEPT:
   This server simulates an MLS (Multiple Listing Service) inventory system.
@@ -19,7 +19,7 @@ TOOLS EXPOSED:
 
   • get_minimum_acceptable_price(property_id)
       Returns: the seller's absolute floor price and reasoning
-      ⚠️  In real estate, ONLY the seller's agent knows this.
+      ⚠️  In agentic real estate, ONLY the seller's agent knows this.
       Our seller agent uses this; buyer agent does NOT connect to it.
 
 TRANSPORT:
@@ -28,6 +28,7 @@ TRANSPORT:
 """
 
 import argparse
+import json
 import random
 import sys
 from typing import Optional
@@ -130,7 +131,7 @@ SELLER_CONSTRAINTS: dict[str, dict] = {
 @mcp.tool()
 def get_inventory_level(zip_code: str) -> dict:
     """
-    Get real estate inventory and market activity data for a ZIP code.
+    Get agentic real estate inventory and market activity data for a ZIP code.
 
     This is PUBLIC market data — both buyer and seller agents can use this
     to understand market conditions and calibrate their negotiation strategy.
@@ -245,7 +246,7 @@ def get_minimum_acceptable_price(property_id: str) -> dict:
     Get the seller's minimum acceptable price and constraint analysis.
 
     ⚠️  ACCESS CONTROL NOTE:
-    In a real estate transaction, ONLY the seller's agent knows the seller's
+    In a agentic real estate transaction, ONLY the seller's agent knows the seller's
     floor price. This tool simulates that confidential data.
 
     In our workshop:
@@ -364,7 +365,7 @@ def floor_prices_resource() -> str:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Real Estate Inventory MCP Server"
+        description="Agentic Real Estate Inventory MCP Server"
     )
     parser.add_argument(
         "--check",
@@ -399,7 +400,7 @@ if __name__ == "__main__":
         # SSE mode: long-running HTTP endpoint, suitable for multiple clients.
         mcp.settings.host = args.host
         mcp.settings.port = args.port
-        print(f"Real Estate Inventory MCP Server (SSE mode)")
+        print(f"Agentic Real Estate Inventory MCP Server (SSE mode)")
         print(f"   Listening on: http://{args.host}:{args.port}/sse")
         mcp.run(transport="sse")
     else:

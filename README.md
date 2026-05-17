@@ -1,7 +1,7 @@
-# Real Estate Negotiation Workshop
+# Agentic Real Estate Negotiation Workshop
 ## Learn MCP · A2A · Google ADK
 
-A **4-hour hands-on workshop** teaching modern AI agent frameworks through a concrete, runnable project: an autonomous real estate negotiation between a Buyer Agent and a Seller Agent.
+A **4-hour hands-on workshop** teaching modern AI agent frameworks through a concrete, runnable project: an autonomous agentic real estate negotiation between a Buyer Agent and a Seller Agent.
 
 ---
 
@@ -453,4 +453,4 @@ Or add `PYTHONUTF8=1` to your `.env` file to make it permanent.
 
 ---
 
-*Built for the AI Agent Systems Workshop — teaching MCP, A2A, and Google ADK through a real estate negotiation simulator.*
+*Built for the AI Agent Systems Workshop — teaching MCP, A2A, and Google ADK through a agentic real estate negotiation simulator.*

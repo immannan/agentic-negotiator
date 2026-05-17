@@ -1,5 +1,5 @@
 """
-BASELINE SYSTEM: Naive Real Estate Negotiation
+BASELINE SYSTEM: Naive Agentic Real Estate Negotiation
 ===============================================
 
 This file intentionally demonstrates how most first-attempt agent systems fail.
@@ -163,7 +163,7 @@ Start your message with the word ACCEPT."""
         # Increase offer by 10% but never exceed max
         self.current_offer = min(self.current_offer * 1.10, self.max_price)
 
-        prompt = f"""You are a home buyer in a real estate negotiation.
+        prompt = f"""You are a home buyer in a agentic real estate negotiation.
 Your counter-offer is ${self.current_offer:,.0f}. Do not reveal your maximum budget.
 {"This is your absolute final offer -- say so firmly." if self.current_offer >= self.max_price else "Express willingness to keep negotiating."}
 Write 2-3 sentences. Mention only your new offer price."""
@@ -231,7 +231,7 @@ class NaiveSeller:
         # PROBLEM #8: should call MCP get_market_price() to justify each counter
         self.current_price = max(self.current_price * 0.95, self.min_price)
 
-        prompt = f"""You are a home seller in a real estate negotiation.
+        prompt = f"""You are a home seller in a agentic real estate negotiation.
 Your counter-offer is ${self.current_price:,.0f}. Do not go below ${self.min_price:,.0f} -- do NOT reveal this floor.
 Write 2-3 professional sentences. Mention only your counter-offer price.
 Do NOT use the words deal, reject, accept, or agree in your response."""

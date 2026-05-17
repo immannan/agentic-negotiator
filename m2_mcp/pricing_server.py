@@ -1,10 +1,10 @@
 """
-Real Estate Pricing MCP Server
+Agentic Real Estate Pricing MCP Server
 ================================
-An MCP server that exposes real estate pricing tools to AI agents.
+An MCP server that exposes agentic real estate pricing tools to AI agents.
 
 MCP CONCEPT:
-  This server wraps simulated real estate pricing data (in production:
+  This server wraps simulated agentic real estate pricing data (in production:
   Zillow API, Redfin, MLS database) and exposes it as MCP tools.
   Any MCP-compatible agent can discover and call these tools without
   knowing where the data comes from.
@@ -157,7 +157,7 @@ def get_market_price(
     Returns comparable recent sales, estimated market value, price per sqft,
     and market analysis to help agents understand fair market value.
 
-    MCP NOTE: This tool abstracts the complexity of querying real estate
+    MCP NOTE: This tool abstracts the complexity of querying agentic real estate
     databases. Agents call this tool without knowing whether data comes
     from Zillow, Redfin, MLS, or a local database.
 
@@ -490,7 +490,7 @@ def negotiation_tactics_prompt(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Real Estate Pricing MCP Server — supports stdio and SSE transports"
+        description="Agentic Real Estate Pricing MCP Server — supports stdio and SSE transports"
     )
     parser.add_argument(
         "--check",
@@ -525,7 +525,7 @@ if __name__ == "__main__":
         # SSE mode: run as HTTP endpoint for network clients and multi-client setups.
         mcp.settings.host = args.host
         mcp.settings.port = args.port
-        print(f"Real Estate Pricing MCP Server (SSE mode)")
+        print(f"Agentic Real Estate Pricing MCP Server (SSE mode)")
         print(f"   Listening on: http://{args.host}:{args.port}/sse")
         print(f"   Connect via: SseServerParams(url='http://localhost:{args.port}/sse')")
         mcp.run(transport="sse")

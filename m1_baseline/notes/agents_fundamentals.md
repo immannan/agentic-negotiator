@@ -463,7 +463,7 @@ message = {
 
 Analogies make abstract concepts stick. Use these to explain agents to non-technical stakeholders.
 
-### The Real Estate Buyer's Agent Analogy
+### The Agentic Real Estate Buyer's Agent Analogy
 
 You hire a buyer's agent (a human) to find and negotiate a home for you. They:
 - **Perceive**: Read MLS listings, visit properties, research comparables
