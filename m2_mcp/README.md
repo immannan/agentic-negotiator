@@ -81,7 +81,7 @@ python m2_mcp/sse_agent_client.py --both "Use inventory and pricing data"   # bo
 
 ### `pricing_server.py` — Custom MCP server for market pricing
 
-This is the first custom MCP server. It wraps simulated real estate pricing data and exposes it as MCP tools.
+This is the first custom MCP server. It wraps simulated agentic real estate pricing data and exposes it as MCP tools.
 
 **Tools it exposes:**
 
@@ -117,7 +117,7 @@ This server simulates an MLS (Multiple Listing Service) system. It has one publi
 
 **The information asymmetry lesson:**
 
-The buyer agent never connects to `get_minimum_acceptable_price`. This is intentional — in real estate, only the seller's agent knows the seller's walk-away price. The seller uses this tool to set a hard floor; the buyer has to negotiate without knowing it.
+The buyer agent never connects to `get_minimum_acceptable_price`. This is intentional — in agentic real estate, only the seller's agent knows the seller's walk-away price. The seller uses this tool to set a hard floor; the buyer has to negotiate without knowing it.
 
 This is the same pattern used in real production systems: MCP access control means different agents get different tools.
 
@@ -212,12 +212,15 @@ Standalone, runnable scripts that crack open the MCP protocol so you can see wha
 
 ## Exercises
 
+Three hands-on exercises designed for the **2-hour follow-up review session** held a few days after the workshop. Try them as homework; the instructor will walk through and run each solution live in class.
+
 | Exercise | Difficulty | Task |
 |---|---|---|
-| `ex01_add_mcp_tool.md` | `[Starter]` | Add a `get_property_tax_estimate` tool to the pricing server using `@mcp.tool()` |
-| `ex02_wire_tool_to_buyer.md` | `[Core]` | Wire the new tool into the buyer agent and verify it's auto-discovered via `list_tools()` |
+| [`ex01_walk_score_tool.md`](exercises/ex01_walk_score_tool.md) | `[Starter]` | Add a `get_walk_score(zip_code)` tool to `pricing_server.py`. Restart `adk web`, ask a walkability question, watch GPT-4o auto-discover and call the new tool with zero agent-side changes. |
+| [`ex02_multi_server_agent.md`](exercises/ex02_multi_server_agent.md) | `[Core]` | Build an `LlmAgent` from scratch that connects to BOTH `pricing_server` and `inventory_server` simultaneously. Test with cross-server queries; understand how ADK merges tool catalogs across multiple `MCPToolset`s. |
+| [`ex03_server_failure_handling.md`](exercises/ex03_server_failure_handling.md) | `[Core]` | Build a multi-server agent that gracefully handles MCP server crashes — detects tool failures via `after_tool_callback` and degrades with fallback responses instead of crashing. The #1 production resilience pattern. |
 
-Solutions are in `m2_mcp/solution/`. Each exercise includes a reflection question.
+Each solution lives in `solution/<exercise_name>/` as a self-contained, runnable package. The instructor walks through each solution live during the review session.
 
 ---
 

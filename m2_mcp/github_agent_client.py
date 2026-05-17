@@ -33,7 +33,7 @@ HOW TO RUN:
   python m2_mcp/github_agent_client.py "What are the top Python MCP repos?"
 
 SAMPLE QUERIES TO TRY:
-  python m2_mcp/github_agent_client.py "Find popular real estate Python projects"
+  python m2_mcp/github_agent_client.py "Find popular agentic real estate Python projects"
   python m2_mcp/github_agent_client.py "What repos implement MCP servers? Show the top 5 by stars"
   python m2_mcp/github_agent_client.py "Search for LangGraph multi-agent examples and summarize them"
   python m2_mcp/github_agent_client.py "Find open issues about MCP in the modelcontextprotocol/python-sdk repo"
@@ -99,7 +99,7 @@ OPENAI_MODEL = "gpt-4o"
 # The agent reads the query, sees the available tools, and decides its own plan.
 
 SAMPLE_QUERIES = [
-    "Find popular real estate Python projects on GitHub",
+    "Find popular agentic real estate Python projects on GitHub",
     "What repos implement MCP servers? Show the top 5 by stars",
     "Search for LangGraph multi-agent examples and summarize them",
     "Find open issues about MCP in the modelcontextprotocol/python-sdk repo",

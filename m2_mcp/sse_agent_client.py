@@ -1,7 +1,7 @@
 """
 SSE MCP Agent Client
 ====================
-An LLM-powered agent that connects to our real estate MCP servers running
+An LLM-powered agent that connects to our agentic real estate MCP servers running
 in SSE (HTTP) mode and lets GPT-4o decide which tools to call based on
 your natural language query.
 
@@ -163,13 +163,13 @@ async def run_agent(
     inventory_url: str | None,
 ) -> str:
     """
-    Agentic loop: connect to real estate MCP servers via SSE,
+    Agentic loop: connect to agentic real estate MCP servers via SSE,
     let GPT-4o decide which tools to call, execute them, produce an answer.
     """
     print()
     print("=" * 65)
     print("SSE MCP AGENT")
-    print("An LLM that decides which real estate tools to call over HTTP")
+    print("An LLM that decides which agentic real estate tools to call over HTTP")
     print("=" * 65)
     print()
     print(f"[Agent] Query: {query}")
@@ -222,7 +222,7 @@ async def run_agent(
         {
             "role": "system",
             "content": (
-                "You are a real estate market analyst. "
+                "You are a agentic real estate market analyst. "
                 "You have access to MCP tools for pricing, discounts, and inventory data. "
                 "Use the tools to answer the user's question with specific data. "
                 "After gathering data, provide a clear, actionable summary."
